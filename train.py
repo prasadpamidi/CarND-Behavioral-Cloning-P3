@@ -31,5 +31,5 @@ model.add(Flatten())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=7)
+model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=5)
 model.save('model.h5')
