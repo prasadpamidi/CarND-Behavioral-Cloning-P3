@@ -41,36 +41,22 @@ y_train = np.array(augmented_measurements)
 
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Dropout, Activation
-from keras.layers import Convolution2D, MaxPooling2D
+from keras.layers import Cropping2D, Convolution2D, MaxPooling2D
 
 model = Sequential()
-model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
-
-# Layer 1: Convolutional 2D. Input = 32x32x3. Output = 28x28x6.
+model.add(Cropping2D(cropping=((70,20), (0,0)), input_shape=(160,320,3)))
+model.add(Lambda(lambda x: (x / 255.0) - 0.5))
 model.add(Convolution2D(6, kernel_size=(5, 5), padding="valid", activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
-# Layer 2: Convolutional 2D. Output = 10x10x16.
 model.add(Convolution2D(16, kernel_size=(5, 5), padding="valid", activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-
-# Flatten. Input = 5x5x16. Output = 400.ßß
 model.add(Flatten())
-
-# Layer 3: Fully Connected. Input = 400. Output = 120.
 model.add(Dense(120, activation='relu'))
-
-# Apply dropout
 model.add(Dropout(0.65))
-
-# Layer 4: Fully Connected. Input = 120. Output = 84.
 model.add(Dense(84, activation='relu'))
-
-# Apply dropout
 model.add(Dropout(0.65))
-
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=5)
+model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=7)
 model.save('model.h5')
