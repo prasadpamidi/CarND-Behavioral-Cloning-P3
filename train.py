@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 lines = []
-with open('../data/driving_log.csv') as csvFile:
+with open('data/driving_log.csv') as csvFile:
     reader = csv.reader(csvFile)
     for line in reader:
         lines.append(line)
@@ -13,7 +13,7 @@ measurements = []
 for line in lines:
     source_path = line[0]
     file_name = source_path.split('/')[-1]
-    current_path = '../data/IMG/'+file_name
+    current_path = 'data/IMG/'+file_name
     image = cv2.imread(current_path)
     images.append(image)
     measurements.append(float(line[3]))
@@ -27,7 +27,7 @@ from keras.layers import Flatten, Dense, Lambda
 
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
-model.add(Flatten(input_shape=(160,320,3)))
+model.add(Flatten())
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
