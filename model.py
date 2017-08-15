@@ -156,17 +156,14 @@ train_samples, validation_samples = train_test_split(data_samples, test_size=0.2
 train_generator = generator(train_samples, batch_size=BATCH_SIZE)
 validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
 
-# Create a keras model
+### Create a keras model
 keras_model = nvidia_arch_model()
 
-# Load any previous saved checkpoint weights, if exists
+### Load any previous saved checkpoint weights, if exists
 if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
     keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
 else:
     print("No prior model checkpoints exist")
-
-print("Steps Per Epoch {}".format(int(np.floor((len(train_samples))/BATCH_SIZE)*BATCH_SIZE)))
-print("Validation steps {}".format(int(np.floor((len(validation_samples))/BATCH_SIZE)*BATCH_SIZE)))
 
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
