@@ -168,9 +168,9 @@ else:
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 history_object = keras_model.fit_generator(train_generator,
-                                           steps_per_epoch=len(train_samples) // BATCH_SIZE,
+                                           steps_per_epoch=int(np.floor((len(train_samples))/BATCH_SIZE)*BATCH_SIZE),
                                            validation_data=validation_generator,
-                                           validation_steps=len(validation_samples) // BATCH_SIZE,
+                                           validation_steps=int(np.floor((len(validation_samples))/BATCH_SIZE)*BATCH_SIZE),
                                            epochs=5,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
