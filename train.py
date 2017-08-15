@@ -130,7 +130,7 @@ data_samples = process_data('data', 0.2)
 train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Compile and train the model using the generator function
-keras_model = lenet_arch_model()
+keras_model = nvidia_arch_model()
 keras_model.compile(loss='mse', optimizer='adam')
 
 ### Create seperate generators for training and validation data
