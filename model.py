@@ -153,7 +153,7 @@ data_samples = process_data('data', 0.2)
 train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Create seperate generators for training and validation data
-train_generator = generator(train_samples, batch_size=32)
+train_generator = generator(train_samples, batch_size=BATCH_SIZE)
 validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
 
 # Create a keras model
