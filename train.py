@@ -21,9 +21,8 @@ def process_data(directory, correction_factor):
             lines.append(line)
 
     images_dir = directory + '/IMG/'
-    image_paths = []
-    measurements = []
-
+    
+    processed_results = []
     for line in lines:
         steering_center = float(line[3])
         steering_left = steering_center + correction_factor
@@ -33,14 +32,11 @@ def process_data(directory, correction_factor):
         img_left_path = images_dir + line[1].split('/')[-1]
         img_right_path = images_dir + line[2].split('/')[-1]
 
-        image_paths.append(img_center_path)
-        measurements.append(steering_center)
-        image_paths.append(img_left_path)
-        measurements.append(steering_left)
-        image_paths.append(img_right_path)
-        measurements.append(steering_right)
+        processed_results.append((img_center_path, steering_center))
+        processed_results.append((img_left_path, steering_left))
+        processed_results.append((img_right_path, steering_right))
 
-    return (image_paths, measurements)
+    return processed_results
 
 def generator(samples, batch_size=32):
     """
@@ -66,7 +62,7 @@ def generator(samples, batch_size=32):
 
             yield shuffle(x_train, y_train)
 
-def nvidia_model():
+def generate_nvidia_model():
     """
     Returns the keras model for the popular NVIDIA architecture.
     """
@@ -105,17 +101,17 @@ def visualize_model_loss(hist_object):
     plt.show()
 
 ### Splitting samples and creating generators.
-data_samples = list(zip(process_data('data', 0.2)))
-train_samples, validation_samples = train_test_split(data_samples[0], test_size=0.2)
+data_samples = process_data('data', 0.2)
+train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Compile and train the model using the generator function
-n_model = nvidia_model()
-n_model.compile(loss='mse', optimizer='adam')
+nvidia_model = generate_nvidia_model()
+nvidia_model.compile(loss='mse', optimizer='adam')
 
 train_generator = generator(train_samples, batch_size=32)
 validation_generator = generator(validation_samples, batch_size=32)
 
-history_object = n_model.fit_generator(train_generator, samples_per_epoch=len(train_samples), validation_data=validation_generator, nb_val_samples=len(validation_samples), nb_epoch=5, verbose=1)
-n_model.save('model.h5')
+history_object = nvidia_model.fit_generator(train_generator, samples_per_epoch=len(train_samples), validation_data=validation_generator, nb_val_samples=len(validation_samples), nb_epoch=5, verbose=1)
+nvidia_model.save('model.h5')
 
 visualize_model_loss(history_object)
