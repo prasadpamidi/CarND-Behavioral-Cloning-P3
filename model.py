@@ -147,12 +147,14 @@ def keras_model_callbacks():
                             mode='max')]
 
 ### Splitting samples and creating generators.
+BATCH_SIZE = 32
+
 data_samples = process_data('data', 0.2)
 train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=32)
-validation_generator = generator(validation_samples, batch_size=32)
+validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
 
 # Create a keras model
 keras_model = nvidia_arch_model()
@@ -166,9 +168,9 @@ else:
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 history_object = keras_model.fit_generator(train_generator,
-                                           steps_per_epoch=len(train_samples),
+                                           steps_per_epoch=len(train_samples) // BATCH_SIZE,
                                            validation_data=validation_generator,
-                                           validation_steps=len(validation_samples),
+                                           validation_steps=len(validation_samples) // BATCH_SIZE,
                                            epochs=5,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
