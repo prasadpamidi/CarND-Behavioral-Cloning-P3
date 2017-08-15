@@ -12,21 +12,26 @@ from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
-KERAS_CHECKPOINT_FILE_PATH = 'keras.weights.best.hdf5'
-
 def process_data(directory, correction_factor):
     """
     Read the data csv file, generates image paths and measurements.
     """
     lines = []
+    if not os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
+        return []
+
     with open(directory + '/driving_log.csv') as csv_file:
         reader = csv.reader(csv_file)
         for line in reader:
             lines.append(line)
 
-    images_dir = directory + '/IMG/'
-      
+    
     processed_results = []
+
+    images_dir = directory + '/IMG/'
+    if not os.path.exists(images_dir):
+        return processed_results
+
     for line in lines:
         steering_center = float(line[3])
         steering_left = steering_center + correction_factor
@@ -120,6 +125,7 @@ def visualize_model_loss(hist_object):
     """
     Visualize the loss metrics for the keras model .
     """
+    print(hist_object.history.keys())
     plt.plot(hist_object.history['loss'])
     plt.plot(hist_object.history['val_loss'])
     plt.title('Mean Squared Error Loss')
@@ -128,6 +134,8 @@ def visualize_model_loss(hist_object):
     plt.legend(['Training set', 'Validation set'], loc='upper right')
 
     plt.show()
+
+KERAS_CHECKPOINT_FILE_PATH = 'keras.weights.best.hdf5'
 
 def keras_model_callbacks():
     """
@@ -157,12 +165,12 @@ else:
     print("No prior model checkpoints exist")
 
 ### Compile and train the model using the generator function
-keras_model.compile(loss='mse', optimizer='adam')
+keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 history_object = keras_model.fit_generator(train_generator,
                                            samples_per_epoch=len(train_samples),
                                            validation_data=validation_generator,
                                            nb_val_samples=len(validation_samples),
-                                           nb_epoch=3,
+                                           nb_epoch=1,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
 keras_model.summary()
@@ -170,5 +178,5 @@ keras_model.summary()
 ### Save the trained model
 keras_model.save('model.h5')
 
-### Visualize the model loss over training and validation data
-visualize_model_loss(history_object)
+### Visualize the model loss over training and validation data - NOT NEEDED FOR EC2
+#visualize_model_loss(history_object)
