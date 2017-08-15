@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Dropout
 from keras.layers import Cropping2D, Convolution2D, MaxPooling2D
 from keras.callbacks import ModelCheckpoint
+from keras.utils import plot_model
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -167,6 +168,7 @@ else:
 
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+
 history_object = keras_model.fit_generator(train_generator,
                                            steps_per_epoch=int(np.floor((len(train_samples))/BATCH_SIZE)*BATCH_SIZE),
                                            validation_data=validation_generator,
@@ -175,6 +177,9 @@ history_object = keras_model.fit_generator(train_generator,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
 keras_model.summary()
+
+### Generate visualiaztion of the entire model
+plot_model(keras_model, to_file='model.png', show_shapes=True)
 
 ### Save the trained model
 keras_model.save('model.h5')
