@@ -17,14 +17,14 @@ def process_data(directory, correction_factor):
     Read the data csv file, generates image paths and measurements.
     """
     lines = []
-    if not os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
+    csv_file_path = directory + '/driving_log.csv'
+    if not os.path.exists(csv_file_path):
         return []
 
-    with open(directory + '/driving_log.csv') as csv_file:
+    with open(csv_file_path) as csv_file:
         reader = csv.reader(csv_file)
         for line in reader:
             lines.append(line)
-
     
     processed_results = []
 
@@ -164,6 +164,9 @@ if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
     keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
 else:
     print("No prior model checkpoints exist")
+
+print("Steps Per Epoch {}".format(int(np.floor((len(train_samples))/BATCH_SIZE)*BATCH_SIZE)))
+print("Validation steps {}".format(int(np.floor((len(validation_samples))/BATCH_SIZE)*BATCH_SIZE)))
 
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
