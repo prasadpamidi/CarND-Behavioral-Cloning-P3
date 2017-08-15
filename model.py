@@ -1,4 +1,5 @@
 import csv
+import os.path
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,9 +7,12 @@ import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Dropout
 from keras.layers import Cropping2D, Convolution2D, MaxPooling2D
+from keras.callbacks import ModelCheckpoint
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
+
+KERAS_CHECKPOINT_FILE_PATH = 'keras.weights.best.hdf5'
 
 def process_data(directory, correction_factor):
     """
@@ -21,7 +25,7 @@ def process_data(directory, correction_factor):
             lines.append(line)
 
     images_dir = directory + '/IMG/'
-    
+      
     processed_results = []
     for line in lines:
         steering_center = float(line[3])
@@ -125,24 +129,43 @@ def visualize_model_loss(hist_object):
 
     plt.show()
 
+def keras_model_callbacks():
+    """
+    Returns an array of keras checkpoint callback.
+    """
+    return [ModelCheckpoint(KERAS_CHECKPOINT_FILE_PATH,
+                            monitor='val_acc',
+                            verbose=1,
+                            save_best_only=True,
+                            mode='max')]
+
 ### Splitting samples and creating generators.
 data_samples = process_data('data', 0.2)
 train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
-
-### Compile and train the model using the generator function
-keras_model = nvidia_arch_model()
-keras_model.compile(loss='mse', optimizer='adam')
 
 ### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=32)
 validation_generator = generator(validation_samples, batch_size=32)
 
+# Create a keras model
+keras_model = nvidia_arch_model()
+
+# Load any previous saved checkpoint weights, if exists
+if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
+    keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
+else:
+    print("No prior model checkpoints exist")
+
+### Compile and train the model using the generator function
+keras_model.compile(loss='mse', optimizer='adam')
 history_object = keras_model.fit_generator(train_generator,
-                                            samples_per_epoch=len(train_samples),
-                                            validation_data=validation_generator,
-                                            nb_val_samples=len(validation_samples),
-                                            nb_epoch=3,
-                                            verbose=1)
+                                           samples_per_epoch=len(train_samples),
+                                           validation_data=validation_generator,
+                                           nb_val_samples=len(validation_samples),
+                                           nb_epoch=3,
+                                           verbose=1,
+                                           callbacks=keras_model_callbacks())
+keras_model.summary()
 
 ### Save the trained model
 keras_model.save('model.h5')
