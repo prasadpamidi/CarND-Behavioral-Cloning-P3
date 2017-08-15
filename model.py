@@ -125,7 +125,6 @@ def visualize_model_loss(hist_object):
     """
     Visualize the loss metrics for the keras model .
     """
-    print(hist_object.history.keys())
     plt.plot(hist_object.history['loss'])
     plt.plot(hist_object.history['val_loss'])
     plt.title('Mean Squared Error Loss')
@@ -170,7 +169,7 @@ history_object = keras_model.fit_generator(train_generator,
                                            samples_per_epoch=len(train_samples),
                                            validation_data=validation_generator,
                                            nb_val_samples=len(validation_samples),
-                                           nb_epoch=1,
+                                           nb_epoch=5,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
 keras_model.summary()
