@@ -107,11 +107,11 @@ def nvidia_arch_model():
     model = Sequential()
     add_preprocessing_layers(model)
 
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(64, 3, 3, activation='relu'))
-    model.add(Convolution2D(64, 3, 3, activation='relu'))
+    model.add(Convolution2D(24, 5, strides=(2, 2), activation='relu'))
+    model.add(Convolution2D(36, 5, strides=(2, 2), activation='relu'))
+    model.add(Convolution2D(48, 5, strides=(2, 2), activation='relu'))
+    model.add(Convolution2D(64, (3, 3), activation='relu'))
+    model.add(Convolution2D(64, (3, 3), activation='relu'))
 
     model.add(Flatten())
     model.add(Dense(100))
@@ -166,10 +166,10 @@ else:
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
 history_object = keras_model.fit_generator(train_generator,
-                                           samples_per_epoch=len(train_samples),
+                                           steps_per_epoch=len(train_samples),
                                            validation_data=validation_generator,
-                                           nb_val_samples=len(validation_samples),
-                                           nb_epoch=5,
+                                           validation_steps=len(validation_samples),
+                                           epochs=5,
                                            verbose=1,
                                            callbacks=keras_model_callbacks())
 keras_model.summary()
