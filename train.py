@@ -108,10 +108,19 @@ train_samples, validation_samples = train_test_split(data_samples, test_size=0.2
 nvidia_model = generate_nvidia_model()
 nvidia_model.compile(loss='mse', optimizer='adam')
 
+### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=32)
 validation_generator = generator(validation_samples, batch_size=32)
 
-history_object = nvidia_model.fit_generator(train_generator, samples_per_epoch=len(train_samples), validation_data=validation_generator, nb_val_samples=len(validation_samples), nb_epoch=5, verbose=1)
+history_object = nvidia_model.fit_generator(train_generator,
+                                            samples_per_epoch=len(train_samples),
+                                            validation_data=validation_generator,
+                                            nb_val_samples=len(validation_samples),
+                                            nb_epoch=5,
+                                            verbose=1)
+
+### Save the trained model
 nvidia_model.save('model.h5')
 
+### Visualize the model loss over training and validation data
 visualize_model_loss(history_object)
