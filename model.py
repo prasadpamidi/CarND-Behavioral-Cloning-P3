@@ -10,6 +10,8 @@ from keras.layers import Cropping2D, Convolution2D, MaxPooling2D
 from keras.callbacks import ModelCheckpoint
 from keras.utils import plot_model
 from keras.optimizers import Adam
+from keras.regularizers import l2
+from keras.layers.advanced_activations import ELU
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -109,23 +111,23 @@ def nvidia_arch_model():
     model = Sequential()
     add_preprocessing_layers(model)
 
-    model.add(Convolution2D(24, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(Convolution2D(24, 5, strides=(2, 2), kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Convolution2D(36, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(Convolution2D(36, 5, strides=(2, 2), kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Convolution2D(48, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(Convolution2D(48, 5, strides=(2, 2), kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Convolution2D(64, (3, 3)), kernel_regularizer=l2(0.001))
+    model.add(Convolution2D(64, (3, 3), kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Convolution2D(64, (3, 3)), kernel_regularizer=l2(0.001))
+    model.add(Convolution2D(64, (3, 3), kernel_regularizer=l2(0.001)))
     model.add(ELU())
 
     model.add(Flatten())
-    model.add(Dense(100), kernel_regularizer=l2(0.001))
+    model.add(Dense(100, kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Dense(50), kernel_regularizer=l2(0.001))
+    model.add(Dense(50, kernel_regularizer=l2(0.001)))
     model.add(ELU())
-    model.add(Dense(10), kernel_regularizer=l2(0.001))
+    model.add(Dense(10, kernel_regularizer=l2(0.001)))
     model.add(ELU())
     model.add(Dense(1))
 
