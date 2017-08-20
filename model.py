@@ -9,6 +9,7 @@ from keras.layers import Flatten, Dense, Lambda, Dropout
 from keras.layers import Cropping2D, Convolution2D, MaxPooling2D
 from keras.callbacks import ModelCheckpoint
 from keras.utils import plot_model
+from keras.optimizers import Adam
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
@@ -108,16 +109,24 @@ def nvidia_arch_model():
     model = Sequential()
     add_preprocessing_layers(model)
 
-    model.add(Convolution2D(24, 5, strides=(2, 2), activation='relu'))
-    model.add(Convolution2D(36, 5, strides=(2, 2), activation='relu'))
-    model.add(Convolution2D(48, 5, strides=(2, 2), activation='relu'))
-    model.add(Convolution2D(64, (3, 3), activation='relu'))
-    model.add(Convolution2D(64, (3, 3), activation='relu'))
+    model.add(Convolution2D(24, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Convolution2D(36, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Convolution2D(48, 5, strides=(2, 2)), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Convolution2D(64, (3, 3)), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Convolution2D(64, (3, 3)), kernel_regularizer=l2(0.001))
+    model.add(ELU())
 
     model.add(Flatten())
-    model.add(Dense(100))
-    model.add(Dense(50))
-    model.add(Dense(10))
+    model.add(Dense(100), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Dense(50), kernel_regularizer=l2(0.001))
+    model.add(ELU())
+    model.add(Dense(10), kernel_regularizer=l2(0.001))
+    model.add(ELU())
     model.add(Dense(1))
 
     return model
@@ -167,7 +176,7 @@ else:
     print("No prior model checkpoints exist")
 
 ### Compile and train the model using the generator function
-keras_model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
+keras_model.compile(loss='mse', optimizer=Adam(lr=1e-4), metrics=['accuracy'])
 
 history_object = keras_model.fit_generator(train_generator,
                                            steps_per_epoch=int(np.floor((len(train_samples))/BATCH_SIZE)*BATCH_SIZE),
