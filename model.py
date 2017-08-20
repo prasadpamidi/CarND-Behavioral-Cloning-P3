@@ -51,7 +51,59 @@ def process_data(directory, correction_factor):
 
     return processed_results
 
-def generator(samples, batch_size=32):
+def random_brightness_image(image):
+    """
+    Returns an image with a random degree of brightness.
+    """
+    dst = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    random_bright = .25 + np.random.uniform()
+    dst[:, :, 2] = dst[:, :, 2] * random_bright
+    dst = cv2.cvtColor(dst, cv2.COLOR_HSV2RGB)
+    return dst
+
+def random_translate_image(image):
+    '''
+    Translates the image with a random value
+    '''
+    rows, cols = image.shape[0], image.shape[1]
+
+    translation_x = 10 * np.random.uniform() - 5
+    translation_y = 10 * np.random.uniform() - 5
+    M = np.float32([[1, 0, translation_x], [0, 1, translation_y]])
+    return cv2.warpAffine(image, M, (cols, rows))
+
+def random_warp_image(image):
+    '''
+    Affine tranform the image
+    '''
+    rows, cols, _ = image.shape
+
+    rnd_x = np.random.rand(3) - 0.5
+    rnd_x *= cols * 0.065
+    rnd_y = np.random.rand(3) - 0.5
+    rnd_y *= rows * 0.065
+
+    x1 = cols/4
+    x2 = 3*cols/4
+    y1 = rows/4
+    y2 = 3*rows/4
+
+    pts1 = np.float32([[y1, x1], [y2, x1], [y1, x2]])
+    pts2 = np.float32([[y1+rnd_y[0], x1+rnd_x[0]], [y2+rnd_y[1], x1+rnd_x[1]],
+                       [y1+rnd_y[2], x2+rnd_x[2]]])
+
+    M = cv2.getAffineTransform(pts1, pts2)
+    return cv2.warpAffine(image, M, (cols, rows))
+
+def random_distort_image(image):
+    """
+    Returns an image with a random degree of brightness, translation and warp.
+    """
+    image = random_brightness_image(image)
+    image = random_translate_image(image)
+    return random_warp_image(image)
+
+def generator(samples, batch_size=32, validation=False):
     """
     Returns a generator for the required images and augmented images from the given set of samples.
     """
@@ -65,15 +117,25 @@ def generator(samples, batch_size=32):
 
             for image_path, measurement in batch_samples:
                 image = cv2.imread(image_path)
+                image = cv2.GaussianBlur(image, (3, 3), 0)
+
+                if not validation:
+                    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    image = random_distort_image(image)
+
                 augmented_images.append(image)
                 augmented_measurements.append(measurement)
-                augmented_images.append(cv2.flip(image, 1))
-                augmented_measurements.append(measurement * -1.0)
+
+                # Flip images whose measurements are not close to straight angle
+                if abs(measurement) > 0.3:
+                    augmented_images.append(cv2.flip(image, 1))
+                    augmented_measurements.append(measurement * -1.0)
 
             x_train = np.array(augmented_images)
             y_train = np.array(augmented_measurements)
 
             yield shuffle(x_train, y_train)
+            x_train, y_train = [], []
 
 def add_preprocessing_layers(model):
     """
@@ -166,7 +228,7 @@ train_samples, validation_samples = train_test_split(data_samples, test_size=0.2
 
 ### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=BATCH_SIZE)
-validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
+validation_generator = generator(validation_samples, batch_size=BATCH_SIZE, validation=True)
 
 ### Create a keras model
 keras_model = nvidia_arch_model()
