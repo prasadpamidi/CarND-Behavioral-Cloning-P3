@@ -116,7 +116,7 @@ def generator(samples, batch_size=32, validation=False):
             _, unique_rotation_angle_counts = np.unique([x[1] for x in batch_samples],
                                                         return_counts=True)
             angles_count_mean = np.mean(unique_rotation_angle_counts)
-            print("Angles count mean for this batch {}".format(angles_count_mean))
+            print("Angles count mean for this batch {} and total batch count is {}".format(angles_count_mean, len(batch_samples)))
             augmented_images, augmented_measurements = [], []
 
             for image_path, measurement in batch_samples:
