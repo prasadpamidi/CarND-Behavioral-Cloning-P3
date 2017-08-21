@@ -116,14 +116,14 @@ def generator(samples, batch_size=32, validation=False):
             _, unique_rotation_angle_counts = np.unique([x[1] for x in batch_samples],
                                                         return_counts=True)
             angles_count_mean = np.mean(unique_rotation_angle_counts)
-            print("Angles count mean for this batch {} and total batch count is {}".format(angles_count_mean, len(batch_samples)))
             augmented_images, augmented_measurements = [], []
 
             for image_path, measurement in batch_samples:
+                if abs(measurement) < 0.1:
+                    zero_measurement_count += 1
+                
                 if abs(measurement) < 0.1 and zero_measurement_count > angles_count_mean:
-                    print("Zero angle count {} is past the mean angle count for this batch."
-                          .format(zero_measurement_count))
-                    yield shuffle(np.array([]), np.array([]))
+                    continue
                 else:
                     image = cv2.imread(image_path)
                     image = cv2.GaussianBlur(image, (3, 3), 0)
@@ -139,12 +139,8 @@ def generator(samples, batch_size=32, validation=False):
                     augmented_images.append(cv2.flip(image, 1))
                     augmented_measurements.append(measurement*-1.0)
 
-                print("Augmented images count {}".format(len(augmented_images)))
                 x_train = np.array(augmented_images)
                 y_train = np.array(augmented_measurements)
-
-                if abs(measurement) < 0.1:
-                    zero_measurement_count += 1
 
                 yield shuffle(x_train, y_train)
                 x_train, y_train = [], []
