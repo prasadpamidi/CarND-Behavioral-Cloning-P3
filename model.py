@@ -139,14 +139,14 @@ def generator(samples, batch_size=32, validation=False):
                     augmented_images.append(cv2.flip(image, 1))
                     augmented_measurements.append(measurement*-1.0)
 
-                    x_train = np.array(augmented_images)
-                    y_train = np.array(augmented_measurements)
+                print("Augmented images count {}".format(len(augmented_images)))
+                x_train = np.array(augmented_images)
+                y_train = np.array(augmented_measurements)
 
-                    if abs(measurement) < 0.1:
-                        zero_measurement_count += 1
+                if abs(measurement) < 0.1:
+                    zero_measurement_count += 1
 
-                    yield shuffle(x_train, y_train)
-
+                yield shuffle(x_train, y_train)
                 x_train, y_train = [], []
 
 def add_preprocessing_layers(model):
