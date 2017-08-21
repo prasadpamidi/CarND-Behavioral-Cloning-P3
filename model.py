@@ -123,8 +123,10 @@ def generator(samples, batch_size=32, validation=False):
                     zero_measurement_count += 1
                 
                 if abs(measurement) < 0.1 and zero_measurement_count > angles_count_mean:
+                    print("Skipping")
                     continue
                 else:
+                    print("Not skipping")
                     image = cv2.imread(image_path)
                     image = cv2.GaussianBlur(image, (3, 3), 0)
 
@@ -138,6 +140,7 @@ def generator(samples, batch_size=32, validation=False):
                     augmented_measurements.append(measurement)
                     augmented_images.append(cv2.flip(image, 1))
                     augmented_measurements.append(measurement*-1.0)
+                    print("Appended augmented images")
 
                 x_train = np.array(augmented_images)
                 y_train = np.array(augmented_measurements)
