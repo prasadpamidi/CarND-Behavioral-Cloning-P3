@@ -223,7 +223,7 @@ keras_model = nvidia_arch_model()
 
 ### Load any previous saved checkpoint weights, if exists
 # if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
- keras_model.load_weights('model_pretrained')
+keras_model.load_weights('model_pretrained')
 # else:
     # print("No prior model checkpoints exist")
 
