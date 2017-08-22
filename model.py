@@ -60,17 +60,6 @@ def random_brightness_image(image):
     dst = cv2.cvtColor(dst, cv2.COLOR_HSV2RGB)
     return dst
 
-def random_translate_image(image):
-    '''
-    Translates the image with a random value
-    '''
-    rows, cols = image.shape[0], image.shape[1]
-
-    translation_x = 10*np.random.uniform()-5
-    translation_y = 10*np.random.uniform()-5
-    M = np.float32([[1, 0, translation_x], [0, 1, translation_y]])
-    return cv2.warpAffine(image, M, (cols, rows))
-
 def random_warp_image(image):
     '''
     Affine tranform the image
@@ -93,14 +82,6 @@ def random_warp_image(image):
 
     M = cv2.getAffineTransform(pts1, pts2)
     return cv2.warpAffine(image, M, (cols, rows))
-
-def random_distort_image(image):
-    """
-    Returns an image with a random degree of brightness, translation and warp.
-    """
-    image = random_brightness_image(image)
-    image = random_translate_image(image)
-    return random_warp_image(image)
 
 def generator(samples, batch_size=32, validation=False):
     """
@@ -128,15 +109,14 @@ def generator(samples, batch_size=32, validation=False):
                     image = cv2.imread(image_path)
                     image = cv2.GaussianBlur(image, (3, 3), 0)
 
-                #Converting to RGB format as drive.py input images are given in rgb format
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
                 if not validation:
-                    image = random_distort_image(image)
+                    image = random_brightness_image(image)
+                    image = random_warp_image(image)
 
                 augmented_images.append(image)
                 augmented_measurements.append(measurement)
-                augmented_images.append(cv2.flip(image, 1))
+                image = cv2.flip(image, 1)
+                augmented_images.append(image)
                 augmented_measurements.append(measurement*-1.0)
 
                 x_train = np.array(augmented_images)
@@ -225,16 +205,14 @@ def keras_model_callbacks():
     Returns an array of keras checkpoint callback.
     """
     return [ModelCheckpoint(KERAS_CHECKPOINT_FILE_PATH,
-                            monitor='val_acc',
                             verbose=1,
-                            save_best_only=True,
-                            mode='max')]
+                            save_best_only=True)]
 
 ### Splitting samples and creating generators.
 BATCH_SIZE = 128
 
 data_samples = process_data('data', 0.25)
-train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
+train_samples, validation_samples = train_test_split(data_samples, test_size=0.5)
 
 ### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=BATCH_SIZE)
@@ -258,12 +236,12 @@ history_object = keras_model.fit_generator(train_generator,
                                            validation_data=validation_generator,
                                            validation_steps=int(np.floor((len(validation_samples))
                                                                          /BATCH_SIZE)*BATCH_SIZE),
-                                           epochs=7,
-                                           verbose=1,
+                                           epochs=5,
+                                           verbose=2,
                                            callbacks=keras_model_callbacks())
 keras_model.summary()
 
-keras_model.save('model.h5')
+keras_model.save_weights('model.h5')
 
 ### Generate visualiaztion of the entire model
 #plot_model(keras_model, to_file='model.png', show_shapes=True)
