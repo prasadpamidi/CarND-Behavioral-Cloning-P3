@@ -212,7 +212,7 @@ def keras_model_callbacks():
 BATCH_SIZE = 128
 
 data_samples = process_data('data', 0.25)
-train_samples, validation_samples = train_test_split(data_samples, test_size=0.5)
+train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Create seperate generators for training and validation data
 train_generator = generator(train_samples, batch_size=BATCH_SIZE)
@@ -222,10 +222,10 @@ validation_generator = generator(validation_samples, batch_size=BATCH_SIZE, vali
 keras_model = nvidia_arch_model()
 
 ### Load any previous saved checkpoint weights, if exists
-if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
-    keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
-else:
-    print("No prior model checkpoints exist")
+# if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
+ keras_model.load_weights('model_pretrained')
+# else:
+    # print("No prior model checkpoints exist")
 
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer=Adam(lr=1e-5), metrics=['accuracy'])
@@ -237,11 +237,11 @@ history_object = keras_model.fit_generator(train_generator,
                                            validation_steps=int(np.floor((len(validation_samples))
                                                                          /BATCH_SIZE)*BATCH_SIZE),
                                            epochs=5,
-                                           verbose=2,
+                                           verbose=1,
                                            callbacks=keras_model_callbacks())
-keras_model.summary()
 
-keras_model.save_weights('model.h5')
+keras_model.save_weights('model_pretrained')
+keras_model.save('model.h5')
 
 ### Generate visualiaztion of the entire model
 #plot_model(keras_model, to_file='model.png', show_shapes=True)
