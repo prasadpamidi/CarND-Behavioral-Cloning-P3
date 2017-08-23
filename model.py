@@ -92,21 +92,11 @@ def generator(samples, batch_size=32, validation=False):
         samples = shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset+batch_size]
-            zero_measurement_count = 0
-            _, unique_rotation_angle_counts = np.unique([x[1] for x in batch_samples],
-                                                        return_counts=True)
-            angles_count_mean = np.mean(unique_rotation_angle_counts)
             augmented_images, augmented_measurements = [], []
 
             for image_path, measurement in batch_samples:
-                if abs(measurement) < 0.1:
-                    zero_measurement_count += 1
-                
-                if abs(measurement) < 0.1 and zero_measurement_count > angles_count_mean:
-                    continue
-                else:
-                    image = cv2.imread(image_path)
-                    image = cv2.GaussianBlur(image, (3, 3), 0)
+                image = cv2.imread(image_path)
+                image = cv2.GaussianBlur(image, (3, 3), 0)
 
                 if not validation:
                     image = random_brightness_image(image)
@@ -232,7 +222,6 @@ if os.path.exists(KERAS_MODEL_WEIGHTS_FILE_PATH):
     keras_model.load_weights(KERAS_MODEL_WEIGHTS_FILE_PATH)
 else:
     print("No prior saved model weights exist")
-
 
 ### Compile and train the model using the generator function
 keras_model.compile(loss='mse', optimizer=Adam(lr=1e-5), metrics=['accuracy'])
