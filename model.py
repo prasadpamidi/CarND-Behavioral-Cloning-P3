@@ -80,8 +80,7 @@ def random_warp_image(image):
     pts2 = np.float32([[y1+rnd_y[0], x1+rnd_x[0]], [y2+rnd_y[1], x1+rnd_x[1]],
                        [y1+rnd_y[2], x2+rnd_x[2]]])
 
-    M = cv2.getAffineTransform(pts1, pts2)
-    return cv2.warpAffine(image, M, (cols, rows))
+    return cv2.warpAffine(image, cv2.getAffineTransform(pts1, pts2), (cols, rows))
 
 def generator(samples, batch_size=32, validation=False):
     """
@@ -221,14 +220,14 @@ validation_generator = generator(validation_samples, batch_size=BATCH_SIZE, vali
 ### Create a keras model
 keras_model = nvidia_arch_model()
 
+### Compile and train the model using the generator function
+keras_model.compile(loss='mse', optimizer=Adam(lr=1e-5), metrics=['accuracy'])
+
 ### Load any previous saved checkpoint weights, if exists
 if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
     keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
 else:
     print("No prior model checkpoints exist")
-
-### Compile and train the model using the generator function
-keras_model.compile(loss='mse', optimizer=Adam(lr=1e-5), metrics=['accuracy'])
 
 history_object = keras_model.fit_generator(train_generator,
                                            steps_per_epoch=int(np.floor((len(train_samples))
