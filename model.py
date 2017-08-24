@@ -91,12 +91,6 @@ validation_generator = utils.generator(validation_samples, batch_size=BATCH_SIZE
 ### Create a keras model
 keras_model = nvidia_arch_model()
 
-### Load any previous saved checkpoint weights, if exists
-if os.path.exists(KERAS_CHECKPOINT_FILE_PATH):
-    keras_model.load_weights(KERAS_CHECKPOINT_FILE_PATH)
-else:
-    print("No prior model checkpoints exist")
-
 ### Load any previous saved model weights, if exists
 if os.path.exists(KERAS_MODEL_WEIGHTS_FILE_PATH):
     keras_model.load_weights(KERAS_MODEL_WEIGHTS_FILE_PATH)
