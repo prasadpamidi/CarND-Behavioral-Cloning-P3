@@ -3,6 +3,7 @@ import os.path
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Dropout, Cropping2D, Convolution2D, MaxPooling2D
@@ -15,37 +16,46 @@ from keras.regularizers import l2
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
+def remove_zero_bias(data_frame):
+    """
+    Randomly deletes zero angle steering records to reduce zero angle bias.
+    """
+    rows_with_steering_zero = data_frame[(data_frame.steering == 0)]
+    drop_indices = np.random.choice(rows_with_steering_zero.index,
+                                    int(len(rows_with_steering_zero) * 0.7),
+                                    replace=False)
+    return data_frame.drop(drop_indices)
+
 def process_data(directory, correction_factor):
     """
     Read the data csv file, generates image paths and measurements.
     """
-    lines = []
     csv_file_path = directory + '/driving_log.csv'
     if not os.path.exists(csv_file_path):
         return []
 
-    with open(csv_file_path) as csv_file:
-        reader = csv.reader(csv_file)
-        for line in reader:
-            lines.append(line)
+    data_frame = pd.read_csv(csv_file_path,
+                             names=['center', 'left', 'right',
+                                    'steering', 'throttle', 'brake', 'speed'])
+
+    data_frame = remove_zero_bias(data_frame)
 
     processed_results = []
-
     images_dir = directory + '/IMG/'
     if not os.path.exists(images_dir):
         return processed_results
 
-    for line in lines:
-        if float(line[6]) < 0.1:
+    for line in data_frame.itertuples():
+        if float(line.speed) < 0.1:
             continue
 
-        steering_center = float(line[3])
+        steering_center = float(line.steering)
         steering_left = steering_center+correction_factor
         steering_right = steering_center-correction_factor
 
-        img_center_path = images_dir+line[0].split('/')[-1]
-        img_left_path = images_dir+line[1].split('/')[-1]
-        img_right_path = images_dir+line[2].split('/')[-1]
+        img_center_path = images_dir+line.center.split('/')[-1]
+        img_left_path = images_dir+line.left.split('/')[-1]
+        img_right_path = images_dir+line.right.split('/')[-1]
 
         processed_results.append((img_center_path, steering_center))
         processed_results.append((img_left_path, steering_left))
@@ -85,21 +95,12 @@ def generator(samples, batch_size=32, validation=False):
         samples = shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset+batch_size]
-            zero_measurement_count = 0
-            _, unique_rotation_angle_counts = np.unique([x[1] for x in batch_samples],
-                                                        return_counts=True)
-            angles_count_mean = np.mean(unique_rotation_angle_counts)
             augmented_images, augmented_measurements = [], []
 
             for image_path, measurement in batch_samples:
-                if abs(measurement) < 0.1:
-                    zero_measurement_count += 1
-               		
-                if abs(measurement) < 0.1 and zero_measurement_count > angles_count_mean:
-                    continue
-                else:
-                    image = cv2.imread(image_path)
-                    image = cv2.GaussianBlur(image, (3, 3), 0)
+                image = cv2.imread(image_path)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image = cv2.GaussianBlur(image, (3, 3), 0)
 
                 if not validation:
                     image = random_brightness_image(image)
@@ -107,9 +108,11 @@ def generator(samples, batch_size=32, validation=False):
 
                 augmented_images.append(image)
                 augmented_measurements.append(measurement)
-                image = cv2.flip(image, 1)
-                augmented_images.append(image)
-                augmented_measurements.append(measurement*-1.0)
+
+                if abs(measurement) > 0.3:
+                    image = cv2.flip(image, 1)
+                    augmented_images.append(image)
+                    augmented_measurements.append(measurement*-1.0)
 
                 x_train = np.array(augmented_images)
                 y_train = np.array(augmented_measurements)
@@ -204,7 +207,7 @@ def keras_model_callbacks():
 ### Splitting samples and creating generators.
 BATCH_SIZE = 128
 
-data_samples = process_data('data', 0.25)
+data_samples = process_data(os.path.dirname(os.path.realpath(__file__))+'/data', 0.25)
 train_samples, validation_samples = train_test_split(data_samples, test_size=0.2)
 
 ### Create seperate generators for training and validation data
