@@ -36,6 +36,9 @@ def process_data(directory, correction_factor):
         return processed_results
 
     for line in lines:
+        if float(line[6]) < 0.1:
+            continue
+
         steering_center = float(line[3])
         steering_left = steering_center+correction_factor
         steering_right = steering_center-correction_factor
@@ -55,32 +58,22 @@ def random_brightness_image(image):
     Returns an image with a random degree of brightness.
     """
     dst = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-    random_bright = .25+np.random.uniform()
+    random_bright = .5+np.random.uniform()
     dst[:, :, 2] = dst[:, :, 2]*random_bright
     dst = cv2.cvtColor(dst, cv2.COLOR_HSV2RGB)
     return dst
 
-def random_warp_image(image):
+def random_shift_image(image):
     '''
-    Affine tranform the image
+    Apply warp tranform the image
     '''
-    rows, cols, _ = image.shape
-
-    rnd_x = np.random.rand(3)-0.5
-    rnd_x *= cols*0.065
-    rnd_y = np.random.rand(3)-0.5
-    rnd_y *= rows*0.065
-
-    x1 = cols/4
-    x2 = 3*cols/4
-    y1 = rows/4
-    y2 = 3*rows/4
-
-    pts1 = np.float32([[y1, x1], [y2, x1], [y1, x2]])
-    pts2 = np.float32([[y1+rnd_y[0], x1+rnd_x[0]], [y2+rnd_y[1], x1+rnd_x[1]],
-                       [y1+rnd_y[2], x2+rnd_x[2]]])
-
-    return cv2.warpAffine(image, cv2.getAffineTransform(pts1, pts2), (cols, rows))
+    h, w, _ = image.shape
+    horizon = 2*h/5
+    v_shift = np.random.randint(-h/8, h/8)
+    pts1 = np.float32([[0, horizon], [w, horizon], [0, h], [w, h]])
+    pts2 = np.float32([[0, horizon+v_shift], [w, horizon+v_shift], [0, h], [w, h]])
+    return cv2.warpPerspective(image, cv2.getPerspectiveTransform(pts1, pts2),
+                               (w, h), borderMode=cv2.BORDER_REPLICATE)
 
 def generator(samples, batch_size=32, validation=False):
     """
@@ -92,15 +85,25 @@ def generator(samples, batch_size=32, validation=False):
         samples = shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset+batch_size]
+            zero_measurement_count = 0
+            _, unique_rotation_angle_counts = np.unique([x[1] for x in batch_samples],
+                                                        return_counts=True)
+            angles_count_mean = np.mean(unique_rotation_angle_counts)
             augmented_images, augmented_measurements = [], []
 
             for image_path, measurement in batch_samples:
-                image = cv2.imread(image_path)
-                image = cv2.GaussianBlur(image, (3, 3), 0)
+                if abs(measurement) < 0.1:
+                    zero_measurement_count += 1
+               		
+                if abs(measurement) < 0.1 and zero_measurement_count > angles_count_mean:
+                    continue
+                else:
+                    image = cv2.imread(image_path)
+                    image = cv2.GaussianBlur(image, (3, 3), 0)
 
                 if not validation:
                     image = random_brightness_image(image)
-                    image = random_warp_image(image)
+                    image = random_shift_image(image)
 
                 augmented_images.append(image)
                 augmented_measurements.append(measurement)
