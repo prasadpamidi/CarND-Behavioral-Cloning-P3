@@ -67,6 +67,8 @@ def random_brightness_image(image):
     dst = cv2.cvtColor(dst, cv2.COLOR_HSV2RGB)
     return dst
 
+# Credits to Jeremy Shannon.
+# Link: https://github.com/jeremy-shannon/CarND-Behavioral-Cloning-Project/blob/master/model.py#L110
 def random_shift_image(image):
     '''
     Apply warp tranform the image
