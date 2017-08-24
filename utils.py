@@ -57,13 +57,18 @@ def process_data(directory, correction_factor):
 
     return processed_results
 
+# Credits to Vivek Yadav.
+# Link: https://chatbotslife.com/using-augmentation-to-mimic-human-driving-496b569760a9
 def random_brightness_image(image):
     """
     Returns an image with a random degree of brightness.
     """
     dst = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    dst = np.array(dst, dtype=np.float64)
     random_bright = .5+np.random.uniform()
     dst[:, :, 2] = dst[:, :, 2]*random_bright
+    dst[:, :, 2][dst[:, :, 2] > 255] = 255
+    dst = np.array(dst, dtype=np.uint8)
     dst = cv2.cvtColor(dst, cv2.COLOR_HSV2RGB)
     return dst
 
