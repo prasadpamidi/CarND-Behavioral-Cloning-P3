@@ -19,6 +19,12 @@ The goals / steps of this project are the following:
 [image4]: ./examples/center_3.jpg "Center Camera Recovery 3"
 [image5]: ./examples/not_flipped.jpg "Actual Image"
 [image6]: ./examples/flipped.jpg "Flipped Image"
+[data_cleanup]: ./examples/data_cleanup.png "Data Cleanup Process"
+[brightness]: ./examples/brightness.png "Brightness Augmentation"
+[verticalshift]: ./examples/shifting.png "Random Veritical Shift"
+[prediction1]: ./examples/prediction.png "Predicted Image"
+[prediction2]: ./examples/prediction2.png "Predicted Image"
+[prediction3]: ./examples/prediction3.png "Predicted Image"
 
 ## Rubric Points
 Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.
@@ -33,6 +39,7 @@ My project includes the following files:
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
+* CarND-Behaviour-Cloning-Keras.ipynb a notebook to briefly explain the process
 
 ####2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -53,6 +60,8 @@ I have built this model using the popular NVIDIA architecture.
 It consists of 5 convolution neural networks followed by 3 fully connected networks.
 
 Model contains a normalization and mean centered layer.  It also has cropping layer to remove unneeded portions of the images(top and bottom).
+
+To prevent overfitting, I have used L2 regularization technique as this is well known approach to address data uniformity issues like zero angle bias in the current data set.
 
 I have not used any dropout or softmax activation to the final output, as this is a single value output predictions.
 
@@ -76,13 +85,13 @@ I followed the same approach for resolving few more issue around corners and sha
 
 ####3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+I have used a correction factor of 0.25 to adjust steering angles from left and right.
 
-I have used a correction factor of 0.2 to adjust steering angles from left and right.
+I have used a learning rate of 1e-5.
 
 I have used 5 epochs to train and validate the data.
 
-I have used 32 items for each epoch.
+I have used 128 items for each epoch.
 
 ####4. Appropriate training data
 
@@ -98,13 +107,13 @@ For details about how I created the training data, see the next section.
 
 ####1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to start with few laps of data while keeping close to center. Now, use the model to observe the car driving behavior in autonomous mode. Based on results, i have recorded extra data to over come some of the obstacles that the car found from the prior trained model.
+The overall strategy for deriving a model architecture was to start with few laps of data while keeping close to center. Now, use the model to observe the car driving behavior in autonomous mode. Based on results, i have recorded extra data to record car recovering from the edges towards the center. I also recorded additional data around the corners.
 
 Due to the use of checkpoints, i was able to use the trained weights from the previous trained data and then improve the model with the new data.
 
-I honestly felt the NVIDIA architecture that was presented during course pretty self sufficient to perform this task.
+I honestly felt the NVIDIA architecture that was presented during course is pretty self sufficient to perform this task.
 
-I tried to add dropouts layers, but noticed the model is underfitting. 
+I tried to add dropouts layers, but noticed the model is underfitting.
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
@@ -118,7 +127,7 @@ Here is a visualization of the architecture (note: visualizing the architecture 
 
 ####3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+To capture good driving behavior, I first recorded two laps on track one using center lane driving and then data for recovery and corners. Here is an example image of center lane driving:
 
 ![alt text][image4]
 
@@ -133,8 +142,32 @@ To augment the data sat, I also flipped images and angles thinking that this wou
 ![alt text][image5]
 ![alt text][image6]
 
-After the collection process, I had more than 30000 data points. I then used to generators and preprocessing layers like normalization and cropping layers to optimize the data set.
+After the collection process, I had more than 20000 data points.
+
+From the data records, I noticed the data is seriosly biased towards zero angle measurements which might cause the model to drive car in straight paths only. To overcome this, I have reduced the zero angle records count to 70% and also flipped images with angles greater than 0.3. This reduced the data distribution difference a little.
+
+![alt text][data_cleanup]
+
+To generalize the model for other driving lanes and light conditions, I have random brightness to images as part of data augmentation step.
+
+![alt text][brightness]
+
+I have also included a random veritcal shift to the images to handle driving over slope scenarios.
+
+![alt text][verticalshift]
+
+I then used to generators and preprocessing layers like normalization and cropping layers to optimize the data set.
 
 I finally randomly shuffled the data set and put 2% of the data into a validation set. 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used an adam optimizer so that manually training the learning rate wasn't necessary.
+
+####4. Test the model
+
+To test the model, I have randomly picked a record from dataset and used model to predict the measurement. I then used the prediction and actual measurement to draw lines on the actual images.(Green line for actual angle and blue line for predicted measurement.)
+
+![alt text][prediction1]
+
+![alt text][prediction2]
+
+![alt text][prediction3]

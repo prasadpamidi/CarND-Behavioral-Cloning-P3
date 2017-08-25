@@ -100,12 +100,13 @@ def generator(samples, batch_size=32, validation=False):
 
             for image_path, measurement in batch_samples:
                 image = cv2.imread(image_path)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 image = cv2.GaussianBlur(image, (3, 3), 0)
 
                 if not validation:
                     image = random_brightness_image(image)
                     image = random_shift_image(image)
+
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
                 augmented_images.append(image)
                 augmented_measurements.append(measurement)
