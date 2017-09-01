@@ -29,7 +29,7 @@ The goals / steps of this project are the following:
 ---
 **Files Submitted & Code Quality**
 
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+***1. Submission includes all required files and can be used to run the simulator in autonomous mode***
 
 My project includes the following files:
 * model.py containing the script to create and train the model
@@ -38,19 +38,20 @@ My project includes the following files:
 * writeup_report.md or writeup_report.pdf summarizing the results
 * CarND-Behaviour-Cloning-Keras.ipynb a notebook to briefly explain the process
 
-####2. Submission includes functional code
+***2. Submission includes functional code***
+
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py model.h5
 ```
 
-####3. Submission code is usable and readable
+***3. Submission code is usable and readable***
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-###Model Architecture and Training Strategy
+**Model Architecture and Training Strategy**
 
-####1. An appropriate model architecture has been employed
+***1. An appropriate model architecture has been employed***
 
 I have built this model using the popular NVIDIA architecture.
 
@@ -66,7 +67,7 @@ I have used the mse loss function along with adam optimizer to train the model.
 
 To overcome issues with memory during training and validation, I've made use of generators for both training and validation data.
 
-####2. Attempts to reduce overfitting in the model
+***2. Attempts to reduce overfitting in the model***
 
 Before I trained the model, i have made sure to capture the weights through checkpoint callbacks.
 
@@ -80,7 +81,7 @@ Now, with the help of checkpoints i have used the earlier trained weights and tr
 
 I followed the same approach for resolving few more issue around corners and shades.
 
-####3. Model parameter tuning
+***3. Model parameter tuning***
 
 I have used a correction factor of 0.25 to adjust steering angles from left and right.
 
@@ -90,7 +91,7 @@ I have used 5 epochs to train and validate the data.
 
 I have used 128 items for each epoch.
 
-####4. Appropriate training data
+***4. Appropriate training data***
 
 Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road.
 
@@ -100,9 +101,9 @@ I drove more around the bridge to handle issues like staying close to the center
 
 For details about how I created the training data, see the next section.
 
-###Model Architecture and Training Strategy
+**Model Architecture and Training Strategy**
 
-####1. Solution Design Approach
+***1. Solution Design Approach***
 
 The overall strategy for deriving a model architecture was to start with few laps of data while keeping close to center. Now, use the model to observe the car driving behavior in autonomous mode. Based on results, i have recorded extra data to record car recovering from the edges towards the center. I also recorded additional data around the corners.
 
@@ -114,7 +115,7 @@ I tried to add dropouts layers, but noticed the model is underfitting.
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
-####2. Final Model Architecture
+***2. Final Model Architecture***
 
 The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
 
@@ -122,7 +123,7 @@ Here is a visualization of the architecture (note: visualizing the architecture 
 
 ![alt text][image1]
 
-####3. Creation of the Training Set & Training Process
+***3. Creation of the Training Set & Training Process***
 
 To capture good driving behavior, I first recorded two laps on track one using center lane driving and then data for recovery and corners. Here is an example image of center lane driving:
 
@@ -159,7 +160,7 @@ I finally randomly shuffled the data set and put 2% of the data into a validatio
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. I used an adam optimizer so that manually training the learning rate wasn't necessary.
 
-####4. Test the model
+***4. Test the model***
 
 To test the model, I have randomly picked a record from dataset and used model to predict the measurement. I then used the prediction and actual measurement to draw lines on the actual images.(Green line for actual angle and blue line for predicted measurement.)
 
