@@ -1,8 +1,8 @@
-**Behavioral Cloning** 
+# Behaviorial Cloning Project
 
----
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-**Behavioral Cloning Project**
+Overview
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
@@ -25,6 +25,9 @@ The goals / steps of this project are the following:
 [prediction1]: ./examples/prediction.png "Predicted Image"
 [prediction2]: ./examples/prediction2.png "Predicted Image"
 [prediction3]: ./examples/prediction3.png "Predicted Image"
+
+## Rubric Points
+Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.
 
 ---
 **Files Submitted & Code Quality**
